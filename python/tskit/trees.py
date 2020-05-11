@@ -1359,7 +1359,7 @@ class Tree:
         `stylesheets <https://www.w3.org/TR/SVG2/styling.html>`_. Style strings can
         be embedded in the svg by using the ``style`` parameter, or added to html
         pages which contain the raw SVG (e.g. within a Jupyter notebook by using the
-        IPython HTML() function). As a simple example, passing the following
+        IPython ``HTML()`` function). As a simple example, passing the following
         string as the ``style`` parameter will hide all labels:
 
         .. code-block:: css
