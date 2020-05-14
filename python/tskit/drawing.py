@@ -718,7 +718,7 @@ class SvgTree:
                 path = dwg.path([("M", o), ("V", -rnd(dy))], **self.edge_attrs[u])
             else:
                 path = dwg.path(
-                    [("M", o), ("V", -rnd(dy)), ("H", -rnd(dx))], **self.edge_attrs[u]
+                    [("M", o), ("q", 0, rnd(-dy), rnd(-dx) , rnd(-dy))], **self.edge_attrs[u]
                 )
             curr.g.add(path)
 
