@@ -24,6 +24,7 @@
 Module responsible for visualisations.
 """
 import collections
+import math
 import numbers
 
 import numpy as np
@@ -116,11 +117,22 @@ def check_x_scale(x_scale):
     return x_scale
 
 
+def rnd(x):
+    """
+    Round a number so that the output SVG doesn't have unneeded precision
+    """
+    digits = 6
+    if x == 0 or not math.isfinite(x):
+        return x
+    digits -= math.ceil(math.log10(abs(x)))
+    return round(x, digits)
+
+
 def add_text_in_group(dwg, elem, x, y, text, **kwargs):
     """
     Add the text to the elem within a group. This allows text rotations to work smoothly
     """
-    grp = elem.add(dwg.g(transform=f"translate({x}, {y})"))
+    grp = elem.add(dwg.g(transform=f"translate({rnd(x)}, {rnd(y)})"))
     grp.add(dwg.text(text, **kwargs))
 
 
@@ -290,7 +302,7 @@ class SvgTreeSequence:
         break_x = self.treebox_x_offset
 
         for svg_tree, tree in zip(svg_trees, ts.trees()):
-            svg_tree.root_group["transform"] = f"translate({tree_x} {y})"
+            svg_tree.root_group["transform"] = f"translate({rnd(tree_x)} {rnd(y)})"
             trees.add(svg_tree.root_group)
             ticks.append((tree_x, break_x, tree.interval[0]))
             tree_x += tree_width
@@ -327,21 +339,25 @@ class SvgTreeSequence:
                     background.add(
                         dwg.polygon(
                             [
-                                (prev_break_x, y + tick_len[1]),
-                                (prev_break_x, y),
-                                (prev_tree_x, y - axis_top_padding),
-                                (prev_tree_x, 0),
-                                (tree_x, 0),
-                                (tree_x, y - axis_top_padding),
-                                (break_x, y),
-                                (break_x, y + tick_len[1]),
+                                (rnd(prev_break_x), rnd(y + tick_len[1])),
+                                (rnd(prev_break_x), rnd(y)),
+                                (rnd(prev_tree_x), rnd(y - axis_top_padding)),
+                                (rnd(prev_tree_x), 0),
+                                (rnd(tree_x), 0),
+                                (rnd(tree_x), rnd(y - axis_top_padding)),
+                                (rnd(break_x), rnd(y)),
+                                (rnd(break_x), rnd(y + tick_len[1])),
                             ],
                             fill="#F1F1F1",
                         )
                     )
 
             axis.add(
-                dwg.line((x, y - tick_len[0]), (x, y + tick_len[1]), stroke="black")
+                dwg.line(
+                    (rnd(x), rnd(y - tick_len[0])),
+                    (rnd(x), rnd(y + tick_len[1])),
+                    stroke="black",
+                )
             )
             add_text_in_group(
                 dwg,
@@ -353,7 +369,6 @@ class SvgTreeSequence:
                 text_anchor="middle",
                 font_weight="bold",
             )
-
 
 
 class SvgTree:
@@ -603,7 +618,8 @@ class SvgTree:
         for u in tree.roots:
             grp = dwg.g(
                 class_=" ".join(self.info_classes(u)),
-                transform=f"translate({node_x_coord_map[u]} {node_y_coord_map[u]})",
+                transform=f"translate({rnd(node_x_coord_map[u])} "
+                f"{rnd(node_y_coord_map[u])})",
             )
             stack.append((u, self.root_group.add(grp)))
         while len(stack) > 0:
@@ -615,7 +631,7 @@ class SvgTree:
                 new_svg_group = curr_svg_group.add(
                     dwg.g(
                         class_=" ".join(self.info_classes(focal)),
-                        transform=f"translate({fx} {fy})",
+                        transform=f"translate({rnd(fx)} {rnd(fy)})",
                     )
                 )
                 stack.append((focal, new_svg_group))
@@ -629,7 +645,9 @@ class SvgTree:
                 pv = node_x_coord_map[v], node_y_coord_map[v]
                 dx = pv[0] - pu[0]
                 dy = pv[1] - pu[1]
-                path = dwg.path([("M", o), ("V", dy), ("H", dx)], **self.edge_attrs[u])
+                path = dwg.path(
+                    [("M", o), ("V", rnd(dy)), ("H", rnd(dx))], **self.edge_attrs[u]
+                )
                 curr_svg_group.add(path)  # Edges in parent group, so
             else:
                 # FIXME this is pretty crappy for spacing mutations over a root.
@@ -654,7 +672,7 @@ class SvgTree:
                 dy = (i + 1) * delta
                 mutation_class = f"mut m{mutation.id} s{mutation.site}"
                 mut_group = curr_svg_group.add(
-                    dwg.g(class_=mutation_class, transform=f"translate(0 {dy})")
+                    dwg.g(class_=mutation_class, transform=f"translate(0 {rnd(dy)})")
                 )
                 # Symbols
                 mut_group.add(dwg.rect(insert=o, **self.mutation_attrs[mutation.id]))
