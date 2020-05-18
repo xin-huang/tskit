@@ -714,8 +714,6 @@ class SvgTree:
             dx, dy = curr.edge_dxy
             if dx == dy == 0:
                 path = dwg.path([("M", o)], **self.edge_attrs[u])  # e.g. at root
-            elif dx == 0:
-                path = dwg.path([("M", o), ("V", -rnd(dy))], **self.edge_attrs[u])
             else:
                 path = dwg.path(
                     [("M", o), ("q", 0, rnd(-dy), rnd(-dx) , rnd(-dy))], **self.edge_attrs[u]
