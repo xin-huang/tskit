@@ -1,7 +1,7 @@
 #
 # MIT License
 #
-# Copyright (c) 2018-2022 Tskit Developers
+# Copyright (c) 2018-2023 Tskit Developers
 # Copyright (c) 2015-2018 University of Oxford
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -244,6 +244,35 @@ class Variant:
         variant_copy.tree_sequence = self.tree_sequence
         variant_copy._ll_variant = self._ll_variant.restricted_copy()
         return variant_copy
+
+    def states(self, missing_data_string=None) -> np.ndarray:
+        """
+        Returns the allelic states at this site as an array of strings.
+
+        .. warning::
+            Using this method is inefficient compared to working with the
+            underlying integer representation of genotypes as returned by
+            the :attr:`~Variant.genotypes` property.
+
+        :param str missing_data_string: A string that will be used to represent missing
+            data. If any normal allele contains this character, an error is raised.
+            Default: `None`, treated as `'N'`.
+        :return: An numpy array of strings of length ``num_sites``.
+        """
+        if missing_data_string is None:
+            missing_data_string = "N"
+        elif not isinstance(missing_data_string, str):
+            # Must explicitly test here, otherwise we output a numpy object array
+            raise ValueError("Missing data string is not a string")
+        alleles = self.alleles
+        if alleles[-1] is None:
+            if missing_data_string in alleles:
+                raise ValueError(
+                    "An existing allele is equal to the "
+                    f"missing data string '{missing_data_string}'"
+                )
+            alleles = alleles[:-1] + (missing_data_string,)
+        return np.array(alleles)[self.genotypes]
 
     def counts(self) -> typing.Counter[str | None]:
         """
