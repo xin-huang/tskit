@@ -218,7 +218,7 @@ is much smaller and generally faster to encode/decode than JSON.
 
 This codec places extra restrictions on the schema:
 
-1. Each property must have a `binaryFormat`
+1. Each property (apart from those of `"type": "object"`) must have a `binaryFormat`
     This sets the binary encoding used for the property.
 
 2. All metadata objects must have fixed properties.
