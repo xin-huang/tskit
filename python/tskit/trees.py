@@ -676,6 +676,31 @@ class Tree:
         self._ll_tree.set_root_threshold(root_threshold)
         self._make_arrays()
 
+    # Implement the pickle protocol for Tree
+
+    def __getstate__(self):
+        # Capture the essential attributes necessary for recreation
+        state = {
+            "tree_sequence": self._tree_sequence,
+            "tracked_samples": getattr(self, "_tracked_samples", None),
+            "root_threshold": self._ll_tree.get_root_threshold(),
+            # No need to store arrays directly if they can be recreated
+        }
+        return state
+
+    def __setstate__(self, state):
+        # Reinitialize the object with the saved state. This calls __init__,
+        # which should recreate the _ll_tree and its related properties
+        self.__init__(
+            tree_sequence=state["tree_sequence"],
+            tracked_samples=state["tracked_samples"],
+            sample_lists=False,
+            root_threshold=state["root_threshold"]
+        )
+        # After __init__, _ll_tree is set up. Now call _make_arrays to recreate the arrays
+        self._make_arrays()
+        # If there are additional steps needed for full restoration, include them here
+
     def copy(self):
         """
         Returns a deep copy of this tree. The returned tree will have identical state
